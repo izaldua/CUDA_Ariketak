@@ -1,0 +1,44 @@
+A matrizea:
+0.00 0.00 0.00 
+0.84 0.84 0.84 
+0.91 0.91 0.91 
+
+
+B matrizea:
+1.00 0.54 -0.42 
+1.00 0.54 -0.42 
+1.00 0.54 -0.42 
+
+
+C matrizea:
+0.00 1.00 2.00 
+1.00 2.00 3.00 
+2.00 3.00 4.00 
+
+
+D matrizea CPU eragiketa ondoren:
+0.00 1.00 2.00 
+3.52 3.36 1.95 
+4.73 4.47 2.86 
+
+
+DDDDDDDDDDDDDDDDDDDDDDDDD
+0.00 0.00 0.00 
+0.00 0.00 0.00 
+0.00 0.00 0.00 
+
+
+D matrizea GPU eragiketa ondoren:
+0.00 0.00 0.00 
+0.00 0.00 0.00 
+0.00 0.00 0.00 
+
+
+D matrizea GPU eragiketa ondoren shared memory erabiliz:
+0.00 1.00 0.00 
+0.00 0.00 0.00 
+0.00 0.00 0.00 
+
+CPU exekuzio denbora: 0.000001ms
+GPU exekuzio denbora: 0.036032ms
+Shared exekuzio denbora: 0.038144ms
