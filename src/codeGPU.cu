@@ -12,10 +12,8 @@ __global__ void GPU_eragiketak(float *A, float *B, float *C, float *D, int tam1,
         float tmp_sum = 0.0f;
         int x = i / tam3;
         int y = i % tam3;
-        for (int k = 0; k < tam2; k++){
+        for (int k = 0; k < tam2; k++)
             tmp_sum += A[x*tam2+k] * B[k*tam3+y];
-            //D[x*tam3+y] = A[x*tam2+k] * B[k*tam3+y];
-        }
         D[x*tam3+y] = tmp_sum + C[x*tam3+y];
     }
 }
