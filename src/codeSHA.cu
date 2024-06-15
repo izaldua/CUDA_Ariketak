@@ -1,9 +1,6 @@
-#define BLOCK_SIZE 16
+#define N 16
 
 __global__ void SHA_eragiketak(float *A, float *B, float *C, float *D, int tam1,  int tam2, int tam3){
-    
-    __shared__ float As[BLOCK_SIZE][BLOCK_SIZE];
-    __shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE];
 
     int bx = blockIdx.x;
     int by = blockIdx.y;
@@ -13,28 +10,30 @@ __global__ void SHA_eragiketak(float *A, float *B, float *C, float *D, int tam1,
     int row = by * blockDim.y + ty;
     int col = bx * blockDim.x + tx;
 
-    float tmp_sum = 0.0f;
+    float tmp_sum = 0.00f;
 
-    for (int i = 0; i < (tam2 + BLOCK_SIZE - 1) / BLOCK_SIZE; ++i) {
-        if (row < tam1 && i * BLOCK_SIZE + tx < tam2) {
-            As[ty][tx] = A[row * tam2 + i * BLOCK_SIZE + tx];
-        } else {
-            As[ty][tx] = 0.0;
-        }
-        if (i * BLOCK_SIZE + tx < tam2 && row < tam3) {
-            Bs[ty][tx] = B[(by * BLOCK_SIZE + ty) * tam3 + i * BLOCK_SIZE + tx];
-        } else {
-            Bs[ty][tx] = 0.0;
-        }
+    __shared__ float As[N][N];
+    __shared__ float Bs[N][N];
+
+    for(int k = 0; k < (tam2 + N - 1 / N); k++){
+        if (row < tam1 && k * N + tx < tam2)
+            As[ty][tx] = A[row * tam2 + k * N + tx];
+        else
+            As[ty][tx] = 0.0f;
+
+        if (k * N + ty < tam2 && col < tam3)
+            Bs[ty][tx] = B[(k * N + ty) * tam3 + col];
+        else
+            Bs[ty][tx] = 0.0f;
         __syncthreads();
-        for (int k = 0; k < BLOCK_SIZE; ++k) {
-            tmp_sum += As[ty][k] * Bs[ty][k];
-        }
+
+        for (int e = 0; e < N; e++) tmp_sum += As[ty][e] * Bs[e][tx];
+
         __syncthreads();
     }
 
-    if (row < tam1 && col < tam3) D[row*tam3+col] = tmp_sum + C[row * tam3 + col];
-
+    if (row < tam1 && col < tam3)
+        D[row * tam3 + col] = tmp_sum + C[row * tam3 + col];
 }
 
 float codeSHA (float *A, float *B, float *C, float *D, int tam1,  int tam2, int tam3){
@@ -47,10 +46,9 @@ float codeSHA (float *A, float *B, float *C, float *D, int tam1,  int tam2, int 
     cudaMalloc (&d_C, tam1 * tam3 * sizeof(float));
     cudaMalloc (&d_D, tam1 * tam3 * sizeof(float));
 
-    cudaMemcpy (d_A, A, tam1 * tam2, cudaMemcpyHostToDevice);
-    cudaMemcpy (d_B, B, tam2 * tam3, cudaMemcpyHostToDevice);
-    cudaMemcpy (d_C, C, tam1 * tam3, cudaMemcpyHostToDevice);
-    cudaMemcpy (d_D, D, tam1 * tam3, cudaMemcpyHostToDevice);
+    cudaMemcpy (d_A, A, tam1 * tam2 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy (d_B, B, tam2 * tam3 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy (d_C, C, tam1 * tam3 * sizeof(float), cudaMemcpyHostToDevice);
 
     //Denborari dagokion aldagaiak sortu eta hasieratu
     float Tex;
@@ -62,14 +60,13 @@ float codeSHA (float *A, float *B, float *C, float *D, int tam1,  int tam2, int 
     cudaEventRecord(t0);
 
     //Funtzioari deitzeko datu egiturak sortu
-    // Zein tamainakoak jarri behar dira?
-    dim3 threadsPerBlock (1, 1); //dim3 threadsPerBlock (BLOCK_SIZE, BLOCK_SIZE);
-    dim3 blocksPerGrid (tam1, tam3);//dim3 blocksPerGrid (ceil(N/BLOCK_SIZE), ceil(N/BLOCK_SIZE));
+    dim3 threadsPerBlock(N, N);// Hari kopurua bloke bakoitzean, biren berretura eta 16 gutxienez
+    dim3 blocksPerGrid((tam3 + N - 1) / N, (tam1 + N - 1) / N);// Bloke kopurua, ondorioz, elementu kopurua zati hari kopurua goruntz borobilduta
 
-    //Gure kernelaren exekuzioa
-    SHA_eragiketak<<<threadsPerBlock, blocksPerGrid>>> (d_A, d_B, d_C, d_D, tam1, tam2, tam3);
+    //Gure kernelaren exekuzioa 
+    SHA_eragiketak<<<blocksPerGrid, threadsPerBlock>>> (d_A, d_B, d_C, d_D, tam1, tam2, tam3);
 
-    cudaMemcpy (D, d_D, tam1 * tam3, cudaMemcpyDeviceToHost);
+    cudaMemcpy (D, d_D, tam1 * tam3 * sizeof(float), cudaMemcpyDeviceToHost);
 
     //Bukaera denborak lortu eta hauen konparazioa Tex aldagaian gorde
     cudaEventRecord(t1);

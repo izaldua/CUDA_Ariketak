@@ -5,6 +5,7 @@
 #include <time.h>
 #include "include/codeGPU.cuh"
 #include "include/codeSHA.cuh"
+#include "include/codeERR.cuh"
 
 double timing_CPU(struct timespec begin, struct timespec end){
      return ((end.tv_sec - begin.tv_sec) + ((end.tv_nsec - begin.tv_nsec) / 1000000000.0));
@@ -83,7 +84,7 @@ int main(int argc, char *argv[]){
     
     int i, j;
     double time_cpu;
-    float time_gpu, time_sha;
+    float time_gpu, time_sha, time_err;
     
     if (argc != 4){
         printf("Sartu hiru zenbaki exekuzioan. \n");
@@ -164,11 +165,25 @@ int main(int argc, char *argv[]){
             printf("%.2f ", D[i * tam3 + j]);
         }
         printf("\n");
-    }    
+    }  
+
+    //Matrizeetako balioak berriro hasieratu arazorik ez izateko badaezpada
+    sortu_matrizeak(A, B, C, D, tam1, tam2, tam3);
+
+    time_err = codeERR(A, B, C, D, tam1, tam2, tam3);
+
+    printf("\n\nD matrizea erraldoien eragiketen ondoren:\n");
+    for (i = 0; i < tam1; i++){
+        for (j = 0; j < tam3; j++){
+            printf("%.2f ", D[i * tam3 + j]);
+        }
+        printf("\n");
+    }  
 
     printf("\nCPU exekuzio denbora: %fms\n", time_cpu);
     printf("GPU exekuzio denbora: %fms\n", time_gpu);
     printf("Shared exekuzio denbora: %fms\n", time_sha);
+    printf("Matrize erraldoien exekuzio denbora: %fms\n", time_err);
 
     // matrizeak askatu
     free(A);
@@ -177,5 +192,4 @@ int main(int argc, char *argv[]){
     free(D);
 
     return 0;
-    
 }

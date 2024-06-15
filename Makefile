@@ -30,7 +30,7 @@ INC_DIR = include
 BIN = ekaina
 
 # Object files:
-OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/codeGPU.o $(OBJ_DIR)/codeSHA.o #$(OBJ_DIR)/codeCPU.o
+OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/codeGPU.o $(OBJ_DIR)/codeSHA.o $(OBJ_DIR)/codeERR.o #$(OBJ_DIR)/codeCPU.o
 
 ## Compile ##
 # Link c and CUDA compiled object files to target executable:
